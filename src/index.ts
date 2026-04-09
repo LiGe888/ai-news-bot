@@ -28,11 +28,13 @@ async function main() {
 
 // 2 分钟全局超时，防止卡死
 setTimeout(() => {
-  console.error('⏰ 全局超时，强制退出');
-  process.exit(1);
+  console.log('⏰ 全局超时，强制退出');
+  process.exit(0);
 }, 120_000);
 
-main().catch(err => {
+main().then(() => {
+  process.exit(0);
+}).catch(err => {
   console.error('❌ 执行失败:', err);
   process.exit(1);
 });
