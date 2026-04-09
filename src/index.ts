@@ -1,4 +1,5 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+dotenv.config();
 import { fetchAllNews, formatAsMarkdown } from './fetcher.js';
 import { sendToDingTalk } from './dingtalk.js';
 
