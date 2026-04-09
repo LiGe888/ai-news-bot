@@ -4,14 +4,12 @@
   "description": "AI 资讯定时推送到钉钉",
   "type": "module",
   "scripts": {
-    "start": "tsx src/index.ts",
+    "start": "node --env-file=.env node_modules/.bin/tsx src/index.ts",
     "build": "tsc",
     "serve": "node dist/index.js"
   },
   "dependencies": {
-    "rss-parser": "^3.13.0",
-    "node-fetch": "^3.3.2",
-    "dotenv": "^16.4.5"
+    "rss-parser": "^3.13.0"
   },
   "devDependencies": {
     "typescript": "^5.4.0",

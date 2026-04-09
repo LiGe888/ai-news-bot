@@ -23,4 +23,4 @@ jobs:
         env:
           DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
           DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
-        run: npx tsx src/index.ts
+        run: node_modules/.bin/tsx src/index.ts
