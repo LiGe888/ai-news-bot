@@ -17,6 +17,8 @@ const READING_FEEDS = [
   { name: 'The Conversation Science', url: 'https://theconversation.com/us/technology/articles.atom' },
   { name: 'MIT News', url: 'https://news.mit.edu/rss/feed' },
   { name: 'Ars Technica Science', url: 'https://feeds.arstechnica.com/arstechnica/science' },
+  { name: 'TED Talks', url: 'https://feeds.feedburner.com/TEDTalks_audio' },
+  { name: 'CGTN', url: 'https://www.cgtn.com/subscribe/rss/section/world.xml' },
 ];
 
 const parser = new RSSParser({
