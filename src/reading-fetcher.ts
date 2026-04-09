@@ -138,50 +138,26 @@ export async function fetchReadingArticles(): Promise<Map<string, ReadingArticle
   return grouped;
 }
 
-const MAX_MSG_LEN = 6000; // 钉钉 markdown 实际限制较小，保守设置
-
 export function formatReadingMarkdown(grouped: Map<string, ReadingArticle[]>): string[] {
   const date = new Date().toLocaleDateString('zh-CN');
-  const header = `## 📖 每日英语阅读 - ${date}\n\n> 🌟 科技·自然·奇闻·科普，有趣的英文世界\n\n`;
-  const footer = '\n---\n> 每日英语阅读 Bot 自动推送 | 🔁 = 已推送过';
+  const messages: string[] = [];
 
-  // 先按分类生成每个源的 markdown 块
-  const blocks: string[] = [];
+  // 每篇文章单独一条消息
   for (const [source, articles] of grouped) {
-    let block = `### 📌 ${source}\n\n`;
     for (const item of articles) {
       const tag = item.isDuplicate ? ' 🔁' : '';
-      block += `- [${item.title}](${item.link})${tag}\n`;
+      let md = `## ${source} - ${date}\n\n`;
+      md += `**[${item.title}](${item.link})**${tag}\n\n`;
       if (item.image) {
-        block += `  ![](${item.image})\n`;
+        md += `![](${item.image})\n\n`;
       }
       if (item.snippet) {
-        block += `  > ${item.snippet}\n\n`;
+        md += `> ${item.snippet}\n\n`;
       }
+      md += '> 每日英语阅读 Bot';
+      messages.push(md);
     }
-    block += '\n';
-    blocks.push(block);
   }
-
-  // 分批：每批不超过 MAX_MSG_LEN
-  const messages: string[] = [];
-  let current = header;
-  let partNum = 1;
-  const totalSources = blocks.length;
-
-  for (let i = 0; i < blocks.length; i++) {
-    if (current.length + blocks[i].length + footer.length > MAX_MSG_LEN && current !== header) {
-      // 当前批次满了，保存并开始新批次
-      current += footer;
-      messages.push(current);
-      partNum++;
-      current = `## 📖 每日英语阅读 (续${partNum}) - ${date}\n\n`;
-    }
-    current += blocks[i];
-  }
-
-  current += footer;
-  messages.push(current);
 
   return messages;
 }
