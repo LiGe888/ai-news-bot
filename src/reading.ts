@@ -23,7 +23,7 @@ async function main() {
 
   console.log(`📨 共 ${messages.length} 条消息需要推送`);
   for (let i = 0; i < messages.length; i++) {
-    console.log(`📤 推送第 ${i + 1}/${messages.length} 条...`);
+    console.log(`📤 推送第 ${i + 1}/${messages.length} 条 (${messages[i].length} 字符)...`);
     await sendToDingTalk(
       { webhook, secret: process.env.READING_DINGTALK_SECRET },
       '每日英语阅读',

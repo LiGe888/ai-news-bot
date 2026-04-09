@@ -93,7 +93,7 @@ async function fetchFeed(name: string, url: string): Promise<ReadingArticle[]> {
       title: item.title || 'Untitled',
       link: item.link || '',
       source: name,
-      snippet: item.contentSnippet?.slice(0, 200) || '',
+      snippet: item.contentSnippet?.slice(0, 100) || '',
       image: extractImage(item),
       date: item.pubDate,
     }));
@@ -138,7 +138,7 @@ export async function fetchReadingArticles(): Promise<Map<string, ReadingArticle
   return grouped;
 }
 
-const MAX_MSG_LEN = 18000; // 钉钉限制 20000，留点余量
+const MAX_MSG_LEN = 6000; // 钉钉 markdown 实际限制较小，保守设置
 
 export function formatReadingMarkdown(grouped: Map<string, ReadingArticle[]>): string[] {
   const date = new Date().toLocaleDateString('zh-CN');
