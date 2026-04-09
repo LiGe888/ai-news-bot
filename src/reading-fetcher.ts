@@ -8,15 +8,15 @@ export interface ReadingArticle {
   date?: string;
 }
 
-// 科技/自然/科学类英文阅读源，适合 5000 词汇量
+// 免费公开的科技/自然/科学英文阅读源
 const READING_FEEDS = [
   { name: 'NASA Science', url: 'https://science.nasa.gov/rss-feed/' },
-  { name: 'National Geographic', url: 'https://www.nationalgeographic.com/feed' },
-  { name: 'Scientific American', url: 'https://rss.sciam.com/ScientificAmerican-Global' },
-  { name: 'New Scientist', url: 'https://www.newscientist.com/section/news/feed/' },
-  { name: 'Nature News', url: 'https://www.nature.com/nature.rss' },
-  { name: 'Live Science', url: 'https://www.livescience.com/feeds/all' },
   { name: 'Phys.org', url: 'https://phys.org/rss-feed/' },
+  { name: 'ScienceDaily', url: 'https://www.sciencedaily.com/rss/all.xml' },
+  { name: 'Space.com', url: 'https://www.space.com/feeds/all' },
+  { name: 'The Conversation Science', url: 'https://theconversation.com/us/technology/articles.atom' },
+  { name: 'MIT News', url: 'https://news.mit.edu/rss/feed' },
+  { name: 'Ars Technica Science', url: 'https://feeds.arstechnica.com/arstechnica/science' },
 ];
 
 const parser = new RSSParser({
