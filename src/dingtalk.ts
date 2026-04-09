@@ -37,6 +37,11 @@ export async function sendToDingTalk(config: DingTalkConfig, title: string, mark
 
   try {
     const data = JSON.parse(text) as { errcode: number; errmsg: string };
+    if (data.errcode === 660026) {
+      // 频率限制，返回特殊标记让调用方重试
+      console.warn('⚠️ 钉钉频率限制，需要等待');
+      throw Object.assign(new Error('rate_limited'), { retryable: true });
+    }
     if (data.errcode !== 0) {
       throw new Error(`钉钉推送失败: ${data.errmsg}`);
     }
