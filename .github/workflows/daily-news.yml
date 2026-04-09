@@ -1,0 +1,27 @@
+name: AI News Daily Push
+
+on:
+  schedule:
+    # 每天早上 9 点（北京时间）= UTC 1:00
+    - cron: '0 1 * * *'
+  workflow_dispatch: # 支持手动触发
+
+jobs:
+  push-news:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Run news bot
+        env:
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
+        run: npx tsx src/index.ts
