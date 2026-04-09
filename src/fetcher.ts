@@ -58,7 +58,7 @@ export async function fetchAllNews(): Promise<NewsItem[]> {
 
 export function formatAsMarkdown(news: NewsItem[]): string {
   const date = new Date().toLocaleDateString('zh-CN');
-  let md = `## 🤖 AI 前沿资讯 - ${date}\n\n`;
+  let md = `## 🤖 AI资讯 - 前沿动态 ${date}\n\n`;
 
   const grouped = new Map<string, NewsItem[]>();
   for (const item of news) {
@@ -75,6 +75,6 @@ export function formatAsMarkdown(news: NewsItem[]): string {
     md += '\n';
   }
 
-  md += '---\n> 由 AI News Bot 自动推送';
+  md += '---\n> 由 AI资讯 Bot 自动推送';
   return md;
 }

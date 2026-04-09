@@ -22,7 +22,7 @@ async function main() {
 
   await sendToDingTalk(
     { webhook, secret: process.env.DINGTALK_SECRET },
-    'AI 前沿资讯',
+    'AI资讯',
     markdown
   );
 }
