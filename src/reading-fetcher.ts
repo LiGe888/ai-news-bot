@@ -8,6 +8,7 @@ export interface ReadingArticle {
   link: string;
   source: string;
   snippet?: string;
+  image?: string;
   date?: string;
   isDuplicate?: boolean;
 }
@@ -27,7 +28,25 @@ const READING_FEEDS = [
 
 const ITEMS_PER_SOURCE = 5;
 
-const parser = new RSSParser({ timeout: 15000 });
+const parser = new RSSParser({
+  timeout: 15000,
+  customFields: {
+    item: [['media:content', 'mediaContent', { keepArray: false }]],
+  },
+});
+
+// 从 RSS item 中提取封面图
+function extractImage(item: any): string {
+  // media:content
+  if (item.mediaContent?.['$']?.url) return item.mediaContent['$'].url;
+  // enclosure
+  if (item.enclosure?.url && item.enclosure.type?.startsWith('image')) return item.enclosure.url;
+  // 从 content 中提取第一个 img src
+  const content = item['content:encoded'] || item.content || '';
+  const match = content.match(/<img[^>]+src=["']([^"']+)["']/);
+  if (match) return match[1];
+  return '';
+}
 
 // 已推送记录文件路径
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -74,7 +93,8 @@ async function fetchFeed(name: string, url: string): Promise<ReadingArticle[]> {
       title: item.title || 'Untitled',
       link: item.link || '',
       source: name,
-      snippet: item.contentSnippet?.slice(0, 150) || '',
+      snippet: item.contentSnippet?.slice(0, 200) || '',
+      image: extractImage(item),
       date: item.pubDate,
     }));
   } catch (err) {
@@ -128,6 +148,9 @@ export function formatReadingMarkdown(grouped: Map<string, ReadingArticle[]>): s
     for (const item of articles) {
       const tag = item.isDuplicate ? ' 🔁' : '';
       md += `- [${item.title}](${item.link})${tag}\n`;
+      if (item.image) {
+        md += `  ![](${item.image})\n`;
+      }
       if (item.snippet) {
         md += `  > ${item.snippet}\n\n`;
       }
