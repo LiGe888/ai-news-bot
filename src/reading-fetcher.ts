@@ -12,17 +12,17 @@ export interface ReadingArticle {
   isDuplicate?: boolean;
 }
 
-// 免费公开的科技/自然/科学英文阅读源
+// 有趣好玩的英文阅读源 - 科技/自然/奇闻/科普
 const READING_FEEDS = [
-  { name: 'NASA', url: 'https://www.nasa.gov/feed/' },
-  { name: 'Phys.org', url: 'https://phys.org/rss-feed/' },
-  { name: 'ScienceDaily', url: 'https://www.sciencedaily.com/rss/all.xml' },
-  { name: 'Space.com', url: 'https://www.space.com/feeds/all' },
-  { name: 'The Conversation', url: 'https://theconversation.com/us/technology/articles.atom' },
-  { name: 'MIT News', url: 'https://news.mit.edu/rss/feed' },
-  { name: 'Ars Technica', url: 'https://feeds.arstechnica.com/arstechnica/science' },
-  { name: 'TED Talks', url: 'https://feeds.feedburner.com/TEDTalks_audio' },
-  { name: 'CGTN', url: 'https://www.cgtn.com/subscribe/rss/section/world.xml' },
+  { name: '🚀 NASA', url: 'https://www.nasa.gov/feed/' },
+  { name: '🔬 IFLScience', url: 'https://www.iflscience.com/rss' },
+  { name: '🧪 Ars Technica', url: 'https://feeds.arstechnica.com/arstechnica/science' },
+  { name: '🌍 Atlas Obscura', url: 'https://www.atlasobscura.com/feeds/latest' },
+  { name: '🎙️ TED Talks', url: 'https://feeds.feedburner.com/TEDTalks_audio' },
+  { name: '🌐 CGTN', url: 'https://www.cgtn.com/subscribe/rss/section/world.xml' },
+  { name: '🛸 Space.com', url: 'https://www.space.com/feeds/all' },
+  { name: '🧠 MIT News', url: 'https://news.mit.edu/rss/feed' },
+  { name: '💡 The Conversation', url: 'https://theconversation.com/us/technology/articles.atom' },
 ];
 
 const ITEMS_PER_SOURCE = 5;
@@ -121,7 +121,7 @@ export async function fetchReadingArticles(): Promise<Map<string, ReadingArticle
 export function formatReadingMarkdown(grouped: Map<string, ReadingArticle[]>): string {
   const date = new Date().toLocaleDateString('zh-CN');
   let md = `## 📖 每日英语阅读 - ${date}\n\n`;
-  md += `> 科技·自然·科学，适合中级英语学习者\n\n`;
+  md += `> 🌟 科技·自然·奇闻·科普，有趣的英文世界\n\n`;
 
   for (const [source, articles] of grouped) {
     md += `### 📌 ${source}\n\n`;
