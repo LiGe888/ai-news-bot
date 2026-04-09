@@ -138,26 +138,50 @@ export async function fetchReadingArticles(): Promise<Map<string, ReadingArticle
   return grouped;
 }
 
-export function formatReadingMarkdown(grouped: Map<string, ReadingArticle[]>): string {
-  const date = new Date().toLocaleDateString('zh-CN');
-  let md = `## 📖 每日英语阅读 - ${date}\n\n`;
-  md += `> 🌟 科技·自然·奇闻·科普，有趣的英文世界\n\n`;
+const MAX_MSG_LEN = 18000; // 钉钉限制 20000，留点余量
 
+export function formatReadingMarkdown(grouped: Map<string, ReadingArticle[]>): string[] {
+  const date = new Date().toLocaleDateString('zh-CN');
+  const header = `## 📖 每日英语阅读 - ${date}\n\n> 🌟 科技·自然·奇闻·科普，有趣的英文世界\n\n`;
+  const footer = '\n---\n> 每日英语阅读 Bot 自动推送 | 🔁 = 已推送过';
+
+  // 先按分类生成每个源的 markdown 块
+  const blocks: string[] = [];
   for (const [source, articles] of grouped) {
-    md += `### 📌 ${source}\n\n`;
+    let block = `### 📌 ${source}\n\n`;
     for (const item of articles) {
       const tag = item.isDuplicate ? ' 🔁' : '';
-      md += `- [${item.title}](${item.link})${tag}\n`;
+      block += `- [${item.title}](${item.link})${tag}\n`;
       if (item.image) {
-        md += `  ![](${item.image})\n`;
+        block += `  ![](${item.image})\n`;
       }
       if (item.snippet) {
-        md += `  > ${item.snippet}\n\n`;
+        block += `  > ${item.snippet}\n\n`;
       }
     }
-    md += '\n';
+    block += '\n';
+    blocks.push(block);
   }
 
-  md += '---\n> 每日英语阅读 Bot 自动推送 | 🔁 = 已推送过';
-  return md;
+  // 分批：每批不超过 MAX_MSG_LEN
+  const messages: string[] = [];
+  let current = header;
+  let partNum = 1;
+  const totalSources = blocks.length;
+
+  for (let i = 0; i < blocks.length; i++) {
+    if (current.length + blocks[i].length + footer.length > MAX_MSG_LEN && current !== header) {
+      // 当前批次满了，保存并开始新批次
+      current += footer;
+      messages.push(current);
+      partNum++;
+      current = `## 📖 每日英语阅读 (续${partNum}) - ${date}\n\n`;
+    }
+    current += blocks[i];
+  }
+
+  current += footer;
+  messages.push(current);
+
+  return messages;
 }
