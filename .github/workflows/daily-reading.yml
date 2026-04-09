@@ -1,0 +1,29 @@
+name: English Reading Daily Push
+
+on:
+  schedule:
+    # 英语阅读：北京时间 8:00, 11:30, 17:00, 21:00
+    - cron: '0 0 * * *'    # 北京 8:00
+    - cron: '30 3 * * *'   # 北京 11:30
+    - cron: '0 9 * * *'    # 北京 17:00
+    - cron: '0 13 * * *'   # 北京 21:00
+  workflow_dispatch: # 支持手动触发
+
+jobs:
+  push-reading:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run reading bot
+        env:
+          READING_DINGTALK_WEBHOOK: ${{ secrets.READING_DINGTALK_WEBHOOK }}
+          READING_DINGTALK_SECRET: ${{ secrets.READING_DINGTALK_SECRET }}
+        run: node_modules/.bin/tsx src/reading.ts
