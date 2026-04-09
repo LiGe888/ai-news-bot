@@ -10,7 +10,7 @@ export interface ReadingArticle {
 
 // 免费公开的科技/自然/科学英文阅读源
 const READING_FEEDS = [
-  { name: 'NASA Science', url: 'https://science.nasa.gov/rss-feed/' },
+  { name: 'NASA', url: 'https://www.nasa.gov/feed/' },
   { name: 'Phys.org', url: 'https://phys.org/rss-feed/' },
   { name: 'ScienceDaily', url: 'https://www.sciencedaily.com/rss/all.xml' },
   { name: 'Space.com', url: 'https://www.space.com/feeds/all' },
