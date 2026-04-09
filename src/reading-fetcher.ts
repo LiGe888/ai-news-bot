@@ -128,6 +128,9 @@ export function formatReadingMarkdown(grouped: Map<string, ReadingArticle[]>): s
     for (const item of articles) {
       const tag = item.isDuplicate ? ' 🔁' : '';
       md += `- [${item.title}](${item.link})${tag}\n`;
+      if (item.snippet) {
+        md += `  > ${item.snippet}\n\n`;
+      }
     }
     md += '\n';
   }

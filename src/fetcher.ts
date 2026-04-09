@@ -4,6 +4,7 @@ export interface NewsItem {
   title: string;
   link: string;
   source: string;
+  snippet?: string;
   date?: string;
 }
 
@@ -28,6 +29,7 @@ async function fetchFeed(name: string, url: string): Promise<NewsItem[]> {
       title: item.title || '无标题',
       link: item.link || '',
       source: name,
+      snippet: item.contentSnippet?.slice(0, 150) || '',
       date: item.pubDate,
     }));
   } catch (err) {
@@ -73,6 +75,9 @@ export function formatAsMarkdown(news: NewsItem[]): string {
     md += `### 📌 ${source}\n\n`;
     for (const item of items) {
       md += `- [${item.title}](${item.link})\n`;
+      if (item.snippet) {
+        md += `  > ${item.snippet}\n\n`;
+      }
     }
     md += '\n';
   }
