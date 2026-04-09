@@ -18,6 +18,12 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Restore push history
+        uses: actions/cache@v4
+        with:
+          path: .pushed-reading.json
+          key: reading-history
+
       - name: Install dependencies
         run: npm ci
 

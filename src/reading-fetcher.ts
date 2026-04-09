@@ -1,4 +1,7 @@
 import RSSParser from 'rss-parser';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export interface ReadingArticle {
   title: string;
@@ -6,6 +9,7 @@ export interface ReadingArticle {
   source: string;
   snippet?: string;
   date?: string;
+  isDuplicate?: boolean;
 }
 
 // 免费公开的科技/自然/科学英文阅读源
@@ -14,23 +18,59 @@ const READING_FEEDS = [
   { name: 'Phys.org', url: 'https://phys.org/rss-feed/' },
   { name: 'ScienceDaily', url: 'https://www.sciencedaily.com/rss/all.xml' },
   { name: 'Space.com', url: 'https://www.space.com/feeds/all' },
-  { name: 'The Conversation Science', url: 'https://theconversation.com/us/technology/articles.atom' },
+  { name: 'The Conversation', url: 'https://theconversation.com/us/technology/articles.atom' },
   { name: 'MIT News', url: 'https://news.mit.edu/rss/feed' },
-  { name: 'Ars Technica Science', url: 'https://feeds.arstechnica.com/arstechnica/science' },
+  { name: 'Ars Technica', url: 'https://feeds.arstechnica.com/arstechnica/science' },
   { name: 'TED Talks', url: 'https://feeds.feedburner.com/TEDTalks_audio' },
   { name: 'CGTN', url: 'https://www.cgtn.com/subscribe/rss/section/world.xml' },
 ];
 
-const parser = new RSSParser({
-  timeout: 15000, // 15 秒超时
-});
+const ITEMS_PER_SOURCE = 5;
+
+const parser = new RSSParser({ timeout: 15000 });
+
+// 已推送记录文件路径
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const HISTORY_FILE = path.join(__dirname, '..', '.pushed-reading.json');
+
+function loadHistory(): Set<string> {
+  try {
+    if (fs.existsSync(HISTORY_FILE)) {
+      const data = JSON.parse(fs.readFileSync(HISTORY_FILE, 'utf-8'));
+      // 只保留最近 7 天的记录，防止文件无限增长
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const recent = data.filter((r: { link: string; ts: number }) => r.ts > weekAgo);
+      return new Set(recent.map((r: { link: string }) => r.link));
+    }
+  } catch { /* ignore */ }
+  return new Set();
+}
+
+function saveHistory(links: string[]) {
+  let records: { link: string; ts: number }[] = [];
+  try {
+    if (fs.existsSync(HISTORY_FILE)) {
+      records = JSON.parse(fs.readFileSync(HISTORY_FILE, 'utf-8'));
+    }
+  } catch { /* ignore */ }
+
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  records = records.filter(r => r.ts > weekAgo);
+  const now = Date.now();
+  for (const link of links) {
+    if (!records.some(r => r.link === link)) {
+      records.push({ link, ts: now });
+    }
+  }
+  fs.writeFileSync(HISTORY_FILE, JSON.stringify(records, null, 2));
+}
 
 async function fetchFeed(name: string, url: string): Promise<ReadingArticle[]> {
   try {
     console.log(`📡 正在抓取 ${name}...`);
     const feed = await parser.parseURL(url);
     console.log(`✅ ${name} 抓取成功，${feed.items?.length || 0} 条`);
-    return (feed.items || []).slice(0, 3).map(item => ({
+    return (feed.items || []).map(item => ({
       title: item.title || 'Untitled',
       link: item.link || '',
       source: name,
@@ -43,40 +83,55 @@ async function fetchFeed(name: string, url: string): Promise<ReadingArticle[]> {
   }
 }
 
-export async function fetchReadingArticles(): Promise<ReadingArticle[]> {
+export async function fetchReadingArticles(): Promise<Map<string, ReadingArticle[]>> {
+  const history = loadHistory();
   const results = await Promise.allSettled(
     READING_FEEDS.map(f => fetchFeed(f.name, f.url))
   );
 
-  const all: ReadingArticle[] = [];
+  const grouped = new Map<string, ReadingArticle[]>();
+  const allPushedLinks: string[] = [];
+
   for (const result of results) {
-    if (result.status === 'fulfilled') {
-      all.push(...result.value);
+    if (result.status !== 'fulfilled' || result.value.length === 0) continue;
+
+    const articles = result.value;
+    const source = articles[0].source;
+
+    // 优先选未推送过的，不够再补重复的
+    const fresh = articles.filter(a => !history.has(a.link));
+    const dupes = articles.filter(a => history.has(a.link)).map(a => ({ ...a, isDuplicate: true }));
+
+    const selected = [...fresh.slice(0, ITEMS_PER_SOURCE)];
+    if (selected.length < ITEMS_PER_SOURCE) {
+      selected.push(...dupes.slice(0, ITEMS_PER_SOURCE - selected.length));
+    }
+
+    if (selected.length > 0) {
+      grouped.set(source, selected);
+      allPushedLinks.push(...selected.filter(a => !a.isDuplicate).map(a => a.link));
     }
   }
 
-  return all
-    .sort((a, b) => {
-      const da = a.date ? new Date(a.date).getTime() : 0;
-      const db = b.date ? new Date(b.date).getTime() : 0;
-      return db - da;
-    })
-    .slice(0, 10);
+  // 保存本次推送的新文章链接
+  saveHistory(allPushedLinks);
+  return grouped;
 }
 
-export function formatReadingMarkdown(articles: ReadingArticle[]): string {
+export function formatReadingMarkdown(grouped: Map<string, ReadingArticle[]>): string {
   const date = new Date().toLocaleDateString('zh-CN');
   let md = `## 📖 每日英语阅读 - ${date}\n\n`;
   md += `> 科技·自然·科学，适合中级英语学习者\n\n`;
 
-  for (const item of articles) {
-    md += `### 📌 ${item.source}\n\n`;
-    md += `**[${item.title}](${item.link})**\n\n`;
-    if (item.snippet) {
-      md += `> ${item.snippet}...\n\n`;
+  for (const [source, articles] of grouped) {
+    md += `### 📌 ${source}\n\n`;
+    for (const item of articles) {
+      const tag = item.isDuplicate ? ' 🔁' : '';
+      md += `- [${item.title}](${item.link})${tag}\n`;
     }
+    md += '\n';
   }
 
-  md += '---\n> 每日英语阅读 Bot 自动推送';
+  md += '---\n> 每日英语阅读 Bot 自动推送 | 🔁 = 已推送过';
   return md;
 }

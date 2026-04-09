@@ -9,15 +9,17 @@ async function main() {
   }
 
   console.log('📖 正在抓取英语阅读语篇...');
-  const articles = await fetchReadingArticles();
+  const grouped = await fetchReadingArticles();
 
-  if (articles.length === 0) {
+  if (grouped.size === 0) {
     console.log('📭 今日暂无新文章');
     return;
   }
 
-  console.log(`📰 获取到 ${articles.length} 篇文章，正在推送...`);
-  const markdown = formatReadingMarkdown(articles);
+  let total = 0;
+  for (const articles of grouped.values()) total += articles.length;
+  console.log(`📰 获取到 ${grouped.size} 个分类共 ${total} 篇文章，正在推送...`);
+  const markdown = formatReadingMarkdown(grouped);
 
   await sendToDingTalk(
     { webhook, secret: process.env.READING_DINGTALK_SECRET },
