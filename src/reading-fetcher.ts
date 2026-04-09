@@ -8,21 +8,26 @@ export interface ReadingArticle {
   date?: string;
 }
 
-// 适合 5000 词汇量水平的英文阅读源
-// 选择语言难度适中的新闻和科普类 RSS
+// 科技/自然/科学类英文阅读源，适合 5000 词汇量
 const READING_FEEDS = [
-  { name: 'VOA Learning English', url: 'https://learningenglish.voanews.com/api/z-qoerekvi' },
-  { name: 'BBC Learning English', url: 'https://www.bbc.co.uk/learningenglish/english/rss' },
-  { name: 'Simple English News', url: 'https://www.simpleenglishnews.com/feed/' },
-  { name: 'News in Levels', url: 'https://www.newsinlevels.com/feed/' },
-  { name: 'Breaking News English', url: 'https://breakingnewsenglish.com/rss.xml' },
+  { name: 'NASA Science', url: 'https://science.nasa.gov/rss-feed/' },
+  { name: 'National Geographic', url: 'https://www.nationalgeographic.com/feed' },
+  { name: 'Scientific American', url: 'https://rss.sciam.com/ScientificAmerican-Global' },
+  { name: 'New Scientist', url: 'https://www.newscientist.com/section/news/feed/' },
+  { name: 'Nature News', url: 'https://www.nature.com/nature.rss' },
+  { name: 'Live Science', url: 'https://www.livescience.com/feeds/all' },
+  { name: 'Phys.org', url: 'https://phys.org/rss-feed/' },
 ];
 
-const parser = new RSSParser();
+const parser = new RSSParser({
+  timeout: 15000, // 15 秒超时
+});
 
 async function fetchFeed(name: string, url: string): Promise<ReadingArticle[]> {
   try {
+    console.log(`📡 正在抓取 ${name}...`);
     const feed = await parser.parseURL(url);
+    console.log(`✅ ${name} 抓取成功，${feed.items?.length || 0} 条`);
     return (feed.items || []).slice(0, 3).map(item => ({
       title: item.title || 'Untitled',
       link: item.link || '',
@@ -60,7 +65,7 @@ export async function fetchReadingArticles(): Promise<ReadingArticle[]> {
 export function formatReadingMarkdown(articles: ReadingArticle[]): string {
   const date = new Date().toLocaleDateString('zh-CN');
   let md = `## 📖 每日英语阅读 - ${date}\n\n`;
-  md += `> 词汇量约 5000，适合中级英语学习者\n\n`;
+  md += `> 科技·自然·科学，适合中级英语学习者\n\n`;
 
   for (const item of articles) {
     md += `### 📌 ${item.source}\n\n`;

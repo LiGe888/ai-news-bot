@@ -17,7 +17,9 @@ const RSS_FEEDS = [
   { name: 'ArXiv CS.AI', url: 'https://rss.arxiv.org/rss/cs.AI' },
 ];
 
-const parser = new RSSParser();
+const parser = new RSSParser({
+  timeout: 15000, // 15 秒超时
+});
 
 async function fetchFeed(name: string, url: string): Promise<NewsItem[]> {
   try {
